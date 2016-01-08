@@ -55,7 +55,7 @@ module Bundler
       def vulnerable?(file)
         Bundler::LockfileParser.new(file).specs.each do |gem|
           @database.check_gem(gem) do |advisory|
-            return true
+            return true unless @ignore.include?(advisory.id)
           end
         end
 
