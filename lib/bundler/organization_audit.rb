@@ -7,8 +7,7 @@ module Bundler
   module OrganizationAudit
     class << self
       def run(options)
-        @database = Bundler::Audit::Database.new
-        @ignore = options[:ignore_advisories] || []
+        @ignore = options[:ignore_advisories]
         vulnerable = find_vulnerable(options)
         if vulnerable.size == 0
           0
@@ -56,8 +55,8 @@ module Bundler
       def vulnerable?(file)
         vulnerable = false
         Bundler::LockfileParser.new(file).specs.each do |gem|
-          @database.check_gem(gem) do |advisory|
-            next if @ignore.include?(advisory.id)
+          database.check_gem(gem) do |advisory|
+            next if ignore.include?(advisory.id)
             next unless advisory.vulnerable?(gem.version)
 
             print_advisory(gem, advisory)
@@ -65,6 +64,14 @@ module Bundler
           end
         end
         vulnerable
+      end
+
+      def ignore
+        @ignore || []
+      end
+
+      def database
+        @database ||= Bundler::Audit::Database.new
       end
 
       def print_advisory(gem, advisory)

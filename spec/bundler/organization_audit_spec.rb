@@ -17,7 +17,7 @@ describe Bundler::OrganizationAudit do
         out = record_out do
           Bundler::OrganizationAudit.send(:audit_repo, repo, {})
         end
-        out.strip.should == "parallel\nbundle-audit\nNo unpatched versions found"
+        out.should =~ %r{Solution: upgrade to >= 4.2.2, ~> 4.1.11}
       end
     end
 
