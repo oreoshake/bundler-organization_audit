@@ -1,4 +1,5 @@
 require "bundler/organization_audit/version"
+require "bundler/audit/cli"
 require "bundler/audit/database"
 require "organization_audit"
 
@@ -53,13 +54,22 @@ module Bundler
       end
 
       def vulnerable?(file)
+        vulnerable = false
         Bundler::LockfileParser.new(file).specs.each do |gem|
           @database.check_gem(gem) do |advisory|
-            return true unless @ignore.include?(advisory.id)
+            next if @ignore.include?(advisory.id)
+            next unless advisory.vulnerable?(gem.version)
+
+            print_advisory(gem, advisory)
+            vulnerable = true
           end
         end
+        vulnerable
+      end
 
-        false
+      def print_advisory(gem, advisory)
+        @interface ||= Bundler::Audit::CLI.new
+        @interface.send(:print_advisory, gem, advisory)
       end
     end
   end
